@@ -7,4 +7,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.7" />
   </ItemGroup>
+  <!-- La interfaz vive fuera de la carpeta api; se incluye en el publish -->
+  <ItemGroup>
+    <Content Include="..\index.html" Link="index.html" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\css\**\*" Link="css\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\js\**\*" Link="js\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

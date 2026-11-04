@@ -7,7 +7,13 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://localhost:5080");
+// En local usa el puerto 5080. En un hosting (IIS, Docker, etc.) se respeta
+// el puerto que asigne la plataforma.
+if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
+    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_PORT")))
+{
+    builder.WebHost.UseUrls("http://localhost:5080");
+}
 builder.Services.AddSingleton<Database>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
@@ -46,8 +52,14 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-var dataRoot = Directory.GetParent(app.Environment.ContentRootPath)?.FullName
-    ?? throw new InvalidOperationException("No se encontró la carpeta de la interfaz.");
+var dataRoot = app.Environment.ContentRootPath;
+if (!File.Exists(Path.Combine(dataRoot, "index.html")))
+{
+    var parent = Directory.GetParent(dataRoot)?.FullName;
+    if (parent is not null && File.Exists(Path.Combine(parent, "index.html"))) dataRoot = parent;
+}
+if (!File.Exists(Path.Combine(dataRoot, "index.html")))
+    throw new InvalidOperationException("No se encontró la carpeta de la interfaz.");
 var contentTypes = new FileExtensionContentTypeProvider();
 contentTypes.Mappings.Clear();
 contentTypes.Mappings[".html"] = "text/html; charset=utf-8";

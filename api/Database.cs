@@ -13,9 +13,12 @@ public sealed class Database(IConfiguration configuration)
 
     public async Task InitializeAsync()
     {
-        var builder = new SqlConnectionStringBuilder(_connectionString) { InitialCatalog = "master" };
-        await using (var master = new SqlConnection(builder.ConnectionString))
+        // LocalDB permite crear la base desde cero. En un hosting la base ya
+        // existe y el usuario no suele tener permiso para crearla.
+        if (_connectionString.Contains("(localdb)", StringComparison.OrdinalIgnoreCase))
         {
+            var builder = new SqlConnectionStringBuilder(_connectionString) { InitialCatalog = "master" };
+            await using var master = new SqlConnection(builder.ConnectionString);
             await master.OpenAsync();
             await using var createDb = master.CreateCommand();
             createDb.CommandText = "IF DB_ID(N'GestionReservas') IS NULL CREATE DATABASE [GestionReservas];";
