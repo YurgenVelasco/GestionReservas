@@ -1,0 +1,5 @@
+# Ignore .NET build output
+**/bin/
+**/obj/
+*.user
+*.suo
